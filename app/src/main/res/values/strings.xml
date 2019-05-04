@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Heart Rate Monitor</string>
+    <string name="ble_not_supported">This device doesn\'t not support BLE</string>
+</resources>
