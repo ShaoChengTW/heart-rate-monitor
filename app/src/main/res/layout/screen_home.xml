@@ -6,15 +6,13 @@
     android:layout_height="match_parent"
     >
 
-    <include
+    <include layout="@layout/appbar"
         android:id="@+id/toolbarInclude"
-        layout="@layout/appbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
 
     <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/heartRateTextView"
@@ -61,4 +59,5 @@
         app:lottie_loop="true"
         app:lottie_rawRes="@raw/popping_heart"
         />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

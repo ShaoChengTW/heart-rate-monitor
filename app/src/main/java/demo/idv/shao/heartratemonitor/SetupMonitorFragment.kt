@@ -14,6 +14,8 @@ import com.polidea.rxandroidble2.RxBleClient
 import com.polidea.rxandroidble2.RxBleDevice
 import com.polidea.rxandroidble2.scan.ScanFilter
 import com.polidea.rxandroidble2.scan.ScanSettings
+import com.polidea.rxandroidble2.scan.ScanSettings.CALLBACK_TYPE_FIRST_MATCH
+import com.polidea.rxandroidble2.scan.ScanSettings.SCAN_MODE_LOW_LATENCY
 import io.reactivex.disposables.CompositeDisposable
 import kotlinx.android.synthetic.main.screen_setup_monitor.*
 import java.util.*
@@ -67,14 +69,16 @@ class SetupMonitorFragment: Fragment() {
     override fun onStart() {
         super.onStart()
 
-        val scanSettings = ScanSettings.Builder().build()
+        val scanSettings = ScanSettings.Builder()
+            .setScanMode(SCAN_MODE_LOW_LATENCY)
+            .build()
         val scanFilter = ScanFilter.Builder().build()
         disposible.add(
             rxBleClient.scanBleDevices(scanSettings, scanFilter)
                 .subscribe( {
                     viewAdapter.addDevice(it.bleDevice)
                 }, { err ->
-                    throw IllegalStateException(err)
+                   throw IllegalStateException(err)
                 })
         )
     }

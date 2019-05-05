@@ -1,13 +1,16 @@
 package demo.idv.shao.heartratemonitor
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
+import kotlinx.android.synthetic.main.appbar.*
 import kotlinx.android.synthetic.main.screen_home.*
 import java.util.*
 
@@ -27,10 +30,11 @@ class HomeFragment: Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        (activity as? MainActivity)?.apply {
-            setSupportActionBar(toolbarInclude as Toolbar)
-            supportActionBar?.setDisplayShowTitleEnabled(true) ?: throw IllegalStateException()
-            title = "Home"
+        (toolbarInclude as Toolbar).title = "Home"
+
+        requireActivity().onBackPressedDispatcher.addCallback {
+            requireActivity().finish()
+            return@addCallback true
         }
     }
 
