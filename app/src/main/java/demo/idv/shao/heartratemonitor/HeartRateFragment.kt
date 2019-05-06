@@ -4,6 +4,8 @@ import android.content.DialogInterface
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
+import android.view.View.GONE
+import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.EditText
@@ -48,7 +50,7 @@ class HeartRateFragment: Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        (toolbarInclude as Toolbar).title = "Home"
+        (toolbarInclude as Toolbar).title = "Heart rate"
 
         requireActivity().onBackPressedDispatcher.addCallback {
             requireActivity().finish()
@@ -60,6 +62,9 @@ class HeartRateFragment: Fragment() {
                 startTime = Calendar.getInstance().timeInMillis
 
                 heartRates.clear()
+                timerTextView.text = ""
+                timerTextView.visibility = VISIBLE
+
                 disposable = Observable.interval(1, TimeUnit.SECONDS)
                     .map { heartRateSubject.value }
                     .observeOn(AndroidSchedulers.mainThread())
@@ -83,6 +88,7 @@ class HeartRateFragment: Fragment() {
                 disposable?.dispose()
 
                 exerciseButton.setText(R.string.start_exercise)
+                timerTextView.visibility = GONE
 
                 showAlert()
             }
@@ -97,15 +103,14 @@ class HeartRateFragment: Fragment() {
 
         val context = context ?: throw IllegalStateException()
 
-        val type = arrayOf("general", "resting", "running")
+        val type = arrayOf("resting", "walking", "running")
         val adapter = ArrayAdapter(context, android.R.layout.simple_spinner_item, type)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         typeSpinner.adapter = adapter
 
-        val alert = AlertDialog.Builder(context)
+        val alert = AlertDialog.Builder(context, R.style.AppDialog)
             .setTitle("Exercise Info")
             .setCancelable(false)
-            .setIcon(R.drawable.ic_action_heart)
             .setView(view)
             .setPositiveButton("OK") { dialog, _ ->
 
@@ -133,6 +138,10 @@ class HeartRateFragment: Fragment() {
     override fun onStart() {
         super.onStart()
 
+        connect()
+    }
+
+    private fun connect() {
         val connectionObservable = (activity as? MainActivity)?.connectionObservable ?: throw IllegalStateException()
         disposible.add(
             connectionObservable
@@ -140,13 +149,17 @@ class HeartRateFragment: Fragment() {
                 .flatMap { observable -> observable }
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe( { value ->
+                    if (!exerciseButton.isEnabled) {
+                        exerciseButton.isEnabled = true
+                    }
+
                     fun unsignedByteToInt(byte: Byte): Int = byte.toInt() and 0xFF
                     val heartRate = unsignedByteToInt(value[1])
                     heartRateTextView.text = "$heartRate"
 
                     heartRateSubject.onNext(heartRate)
                 }, { err ->
-                        throw IllegalStateException(err)
+                    connect()
                 })
         )
     }

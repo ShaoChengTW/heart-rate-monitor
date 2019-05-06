@@ -1,5 +1,7 @@
 package demo.idv.shao.heartratemonitor
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -12,6 +14,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.polidea.rxandroidble2.RxBleClient
 import com.polidea.rxandroidble2.RxBleDevice
+import com.polidea.rxandroidble2.exceptions.BleScanException
+import com.polidea.rxandroidble2.exceptions.BleScanException.LOCATION_PERMISSION_MISSING
 import com.polidea.rxandroidble2.scan.ScanFilter
 import com.polidea.rxandroidble2.scan.ScanSettings
 import com.polidea.rxandroidble2.scan.ScanSettings.CALLBACK_TYPE_FIRST_MATCH
@@ -24,6 +28,7 @@ class SetupMonitorFragment: Fragment() {
 
     companion object {
         const val HEART_RATE_MEASUREMENT = "00002a37-0000-1000-8000-00805f9b34fb"
+        const val MY_PERMISSIONS_REQUEST_LOCATION = 829
         val UUID_HEART_RATE_MEASUREMENT = UUID.fromString(HEART_RATE_MEASUREMENT)
     }
 
@@ -69,6 +74,10 @@ class SetupMonitorFragment: Fragment() {
     override fun onStart() {
         super.onStart()
 
+        scan()
+    }
+
+    private fun scan() {
         val scanSettings = ScanSettings.Builder()
             .setScanMode(SCAN_MODE_LOW_LATENCY)
             .build()
@@ -78,7 +87,19 @@ class SetupMonitorFragment: Fragment() {
                 .subscribe( {
                     viewAdapter.addDevice(it.bleDevice)
                 }, { err ->
-                   throw IllegalStateException(err)
+                    if (err is BleScanException) {
+                        when (err.reason) {
+                            LOCATION_PERMISSION_MISSING -> {
+                                requireActivity().let { act ->
+                                    requestPermissions(
+                                        arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                                        MY_PERMISSIONS_REQUEST_LOCATION)
+                                }
+                            }
+                            else -> throw IllegalStateException(err)
+                        }
+                    }
+                    throw IllegalStateException(err)
                 })
         )
     }
@@ -86,6 +107,13 @@ class SetupMonitorFragment: Fragment() {
     override fun onStop() {
         super.onStop()
         disposible.dispose()
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        if (requestCode == MY_PERMISSIONS_REQUEST_LOCATION && grantResults.isNotEmpty() &&
+                grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+           scan()
+        }
     }
 }
 
