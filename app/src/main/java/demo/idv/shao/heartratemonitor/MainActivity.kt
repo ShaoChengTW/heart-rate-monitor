@@ -8,8 +8,11 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.room.Room
+import androidx.room.RoomDatabase
 import com.polidea.rxandroidble2.RxBleClient
 import com.polidea.rxandroidble2.RxBleConnection
+import demo.idv.shao.heartratemonitor.data.AppDatabase
 import io.reactivex.Observable
 
 class MainActivity : AppCompatActivity() {
@@ -21,6 +24,8 @@ class MainActivity : AppCompatActivity() {
     lateinit var rxBleClient: RxBleClient
 
     private var bluetoothAdapter: BluetoothAdapter? = null
+
+    var db: AppDatabase? = null
 
     private fun PackageManager.missingSystemFeature(name: String): Boolean = !hasSystemFeature(name)
 
@@ -48,6 +53,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         rxBleClient = RxBleClient.create(this)
+
+        db = Room.databaseBuilder(this, AppDatabase::class.java, "heart-rate-monitor-db").build()
     }
 }
 
